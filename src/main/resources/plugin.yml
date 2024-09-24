@@ -1,0 +1,4 @@
+name: TreasureMining
+version: '${version}'
+main: plugin.treasuremining.Main
+api-version: '1.20'
