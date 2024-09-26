@@ -1,5 +1,5 @@
 name: TreasureMining
-version: '${version}'
+version: '1.0-SNAPSHOT'
 main: plugin.treasuremining.Main
 api-version: '1.20'
 commands:
