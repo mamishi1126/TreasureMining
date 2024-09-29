@@ -14,7 +14,7 @@ public final class Main extends JavaPlugin  {
   public void onEnable() {
 
     // TreasureMiningCommand のインスタンスを作成
-    TreasureMiningCommand treasureMiningCommand = new TreasureMiningCommand();
+    TreasureMiningCommand treasureMiningCommand = new TreasureMiningCommand(this);
 
     // TreasureMiningCommand をリスナーとして登録
     Bukkit.getPluginManager().registerEvents(treasureMiningCommand, this);
