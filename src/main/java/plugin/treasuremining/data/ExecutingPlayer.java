@@ -1,15 +1,25 @@
 package plugin.treasuremining.data;
 
 /**
- * MiningGameのゲームを実行する際のプレイヤー情報を持つオブジェクト
- * ゲームをプレイした回数、合計点数、日時を情報に持つ。
+ * TreasureMiningGameのゲームを実行する際のプレイヤー情報を持つオブジェクト
+ * ゲームをプレイした回数、合計点数を情報に持つ。
  */
 
 
 public class ExecutingPlayer {
 
+  private int gameTime;
   private String playerName;
   private int score;
+
+
+  public int getGameTime() {
+    return gameTime;
+  }
+
+  public void setGameTime(int gameTime) {
+    this.gameTime = gameTime;
+  }
 
   public String getPlayerName() {
     return playerName;
@@ -26,4 +36,7 @@ public class ExecutingPlayer {
   public void setScore(int score) {
     this.score = score;
   }
+
+
+
 }

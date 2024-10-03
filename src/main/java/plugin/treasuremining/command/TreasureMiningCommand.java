@@ -19,6 +19,8 @@ import plugin.treasuremining.Main;
 import plugin.treasuremining.data.ExecutingPlayer;
 
 
+
+
 //implements=実装する
 //CommandExecutor=コマンドを実行するもの
 public class TreasureMiningCommand implements CommandExecutor, Listener {
@@ -26,7 +28,7 @@ public class TreasureMiningCommand implements CommandExecutor, Listener {
 
   private Main main;
   private List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
-  private int gameTime = 60;
+  private ExecutingPlayer nowExecutingPlayer;
 
   //コマンドに対してプラグインの機能をもつことができる。
   public TreasureMiningCommand(Main main) {
@@ -38,32 +40,30 @@ public class TreasureMiningCommand implements CommandExecutor, Listener {
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     if (sender instanceof Player player) {
-      ExecutingPlayer executingPlayer = new ExecutingPlayer();
-      executingPlayer.setPlayerName(player.getName());
-      executingPlayerList.add(executingPlayer);
+      ExecutingPlayer nowExecutingPlayer = getPlayerScore(player);
+      nowExecutingPlayer.setGameTime(60);
 
-      gameTime = 60;
       //初期設定
       initPlayerStatus(player);
 
-      player.sendTitle("Let's mine the treasure!", "制限時間3分", 10, 70, 20);
+      player.sendTitle("Let's mine the treasure!", "制限時間1分", 10, 70, 20);
 
       Bukkit.getScheduler().runTaskTimer(main,Runnable -> {
-        if (gameTime <= 0) {
+        if (nowExecutingPlayer.getGameTime() <= 0) {
           Runnable.cancel();
           System.out.println("ゲーム終了");
-          player.sendTitle("ゲームが終了しました。", null,10, 70, 20);
+          player.sendTitle("ゲームが終了しました","スコア：" + nowExecutingPlayer.getScore()+ "点",
+              10, 70, 20);
+          nowExecutingPlayer.setScore(0);
           return;
         }
-        gameTime -= 1;
-      },0,20);
-
-      getRandomOre();
-
+        nowExecutingPlayer.setGameTime(nowExecutingPlayer.getGameTime() - 1);
+      }, 0, 20);
     }
     //上記のonCommandメソッドが実行されなかった場合にfalseとみなす。
     return false;
   }
+
 
 
 
@@ -84,41 +84,50 @@ public class TreasureMiningCommand implements CommandExecutor, Listener {
   @EventHandler
   public void onBreakBlock(BlockBreakEvent e) {
     Block block = e.getBlock();
-    Material material = block.getType();
     Player player = e.getPlayer();
 
     //コマンド実行前にイベント発生した場合のNullチェック
-    //if(Object.isNull(player)) {
-    //return;
-    //}
+    if(player == null) {
+      return;
+    }
 
     //コマンド実行度のNullチェック
-    //if (executingPlayerList.isEmpty()) {
-    //  return;
-    //}
+    if (executingPlayerList.isEmpty()) {
+      return;
+    }
+
 
       executingPlayerList.stream()
           .filter(p -> p.getPlayerName().equals(player.getName()))
           .findFirst()
           .ifPresent(p -> {
 
-            // 発掘した鉱石の種類に応じてポイントを加算
-            int point = switch (material) {
-              case LAPIS_LAZULI -> 20;
-              case DIAMOND -> 30;
-              case EMERALD -> 60;
-              default -> 0;
-            };
-            p.setScore(p.getScore() + point);
 
-            // ブロックのドロップをキャンセル
             e.setDropItems(false);
 
             // ランダムに選ばれた鉱石をドロップさせる
             Material randomOre = getRandomOre();
             block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(randomOre, 1));
-          });
 
+
+            // 発掘した鉱石の種類に応じてポイントを加算
+            //★ここのdefaultしか機能していないかも？
+            //getRandamOre()は機能していてMaterial名は出るのかも
+            //リファクタリング前から作成してみる
+            int point = switch (randomOre) {
+              case LAPIS_LAZULI -> 20;
+              case DIAMOND -> 30;
+              case EMERALD -> 60;
+              default -> 0;
+            };
+
+            p.setScore(p.getScore() + point);
+
+            // 新しいスコアを確認
+            System.out.println(randomOre + "を発掘！新しいスコア（加算後）: " + p.getScore());
+
+            player.sendMessage(randomOre + "を発掘！現在のポイントは" + p.getScore() + "点！");
+          });
   }
 
   /**
@@ -133,8 +142,49 @@ public class TreasureMiningCommand implements CommandExecutor, Listener {
   }
 
 
+  /**
+   * 現在実行しているプレイヤーのスコア情報を取得。
+   * @param player コマンドを実行したプレイヤー
+   * @return 現在実行しているプレイヤーのスコア情報
+   */
+  private ExecutingPlayer getPlayerScore(Player player) {
+    for (ExecutingPlayer executingPlayer : executingPlayerList) {
+      if (executingPlayer.getPlayerName().equals(player.getName())) {
+        // プレイヤーがリストに存在する場合、そのプレイヤーを返す
+        return executingPlayer;
+      }
+    }
+    return addNewPlayer(player);
+  }
+
+    //if (executingPlayerList.isEmpty()) {
+      //executingPlayerListが空であれば新規プレイヤーを返す(存在しているがリストにない場合)。
+      //return addNewPlayer(player);
+    //} else {
+      //for (ExecutingPlayer executingPlayer : executingPlayerList) {
+       // if (!executingPlayer.getPlayerName().equals(player.getName())) {
+          //プレイヤー情報が損際していない場合も新規プレイヤーを返す。
+         // return addNewPlayer(player);
+       // } else {
+          //ifに引っかからない場合(=プレイヤー情報がリストに入っていて存在している場合)executingPlayerを返す。
+        //  return executingPlayer;
+   //     }
+   //   }
+   // }
+   // return null;
 
 
 
+  /**
+   * 新規のプレイヤー情報を追加
+   * @param player
+   * @return 新規プレイヤー
+   */
+  private ExecutingPlayer addNewPlayer(Player player) {
+    ExecutingPlayer newExecutingPlayer = new ExecutingPlayer();
+    newExecutingPlayer.setPlayerName(player.getName());
+    executingPlayerList.add(newExecutingPlayer);
+    return newExecutingPlayer;
+  }
 
 }
