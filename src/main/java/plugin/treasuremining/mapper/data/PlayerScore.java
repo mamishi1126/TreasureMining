@@ -1,6 +1,9 @@
 package plugin.treasuremining.mapper.data;
 
 import java.time.LocalDateTime;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * プレイヤーのスコア情報を扱うオブジェクト。
@@ -8,13 +11,19 @@ import java.time.LocalDateTime;
  */
 
 
+
+@NoArgsConstructor
 public class PlayerScore {
 
   private int id;
   private String playerName;
   private int score;
-  private LocalDateTime registered_at;
+  private LocalDateTime registeredAt;
 
+  public PlayerScore(String playerName, int score){
+    this.playerName = playerName;
+    this.score = score;
+  }
 
   public int getId() {
     return id;
@@ -40,11 +49,12 @@ public class PlayerScore {
     this.score = score;
   }
 
-  public LocalDateTime getRegistered_at() {
-    return registered_at;
+  public LocalDateTime getRegisteredAt() {
+    return registeredAt;
   }
 
-  public void setRegistered_at(LocalDateTime registered_at) {
-    this.registered_at = registered_at;
+  public void setRegisteredAt(LocalDateTime registeredAt) {
+    this.registeredAt = registeredAt;
   }
+
 }

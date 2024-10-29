@@ -1,7 +1,6 @@
 package plugin.treasuremining.command;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -63,12 +61,12 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
         List<PlayerScore> playerScoreList = mapper.selectList();
 
         for (PlayerScore playerScore : playerScoreList) {
-          if (playerScore.getRegistered_at() != null) {
+          if (playerScore.getRegisteredAt() != null) {
             // 正常に日時が取得できた場合
             player.sendMessage(playerScore.getId() + " | "
                 + playerScore.getPlayerName() + " | "
                 + playerScore.getScore() + " | "
-                + playerScore.getRegistered_at().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
           } else {
             // null だった場合のデバッグメッセージ
             player.sendMessage("Error: 登録日時が取得できませんでした。");
@@ -130,6 +128,13 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
         player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
+        //スコア登録処理
+        try (SqlSession session = sqlSessionFactory.openSession(true)){
+          PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
+          mapper.insert(
+              new PlayerScore(nowExecutingPlayer.getPlayerName()
+                  , nowExecutingPlayer.getScore()));
+        }
         return;
       }
       //// 1秒ごとに残り時間を減少させる
