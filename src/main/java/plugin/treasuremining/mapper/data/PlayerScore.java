@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.bukkit.Material;
 
 /**
  * プレイヤーのスコア情報を扱うオブジェクト。
@@ -20,10 +21,13 @@ public class PlayerScore {
   private int score;
   private LocalDateTime registeredAt;
 
+
+
   public PlayerScore(String playerName, int score){
     this.playerName = playerName;
     this.score = score;
   }
+
 
   public int getId() {
     return id;

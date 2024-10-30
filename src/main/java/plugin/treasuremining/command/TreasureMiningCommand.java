@@ -21,13 +21,12 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import plugin.treasuremining.Main;
+import plugin.treasuremining.PlayerScoreDataAccess;
 import plugin.treasuremining.data.ExecutingPlayer;
 import plugin.treasuremining.mapper.PlayerScoreMapper;
 import plugin.treasuremining.mapper.data.PlayerScore;
 
 
-//implements=実装する
-//CommandExecutor=コマンドを実行するもの
 public class TreasureMiningCommand extends BaseCommand implements Listener {
 
   public static final int GAME_TIME = 60;
@@ -35,49 +34,25 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
 
   private Main main;
+  private PlayerScoreDataAccess playerScoreDataAccess = new PlayerScoreDataAccess();
+
   private List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
 
-  //Sqlsessionfactory:sqlsession(コマンド実行、mapperの取得、トランザクション管理を行う)を作成するメソッド。
-  private SqlSessionFactory sqlSessionFactory;
 
-
-  //コマンドに対してプラグインの機能をもつことができる。
   public TreasureMiningCommand(Main main) {
     this.main = main;
-    try {
-      InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
-      this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    //最初の引数が「playerList」の場合、スコアを一覧表示して処理を終了する。
     if (args.length == 1 && PLAYER_LIST.equals(args[0])) {
-      try (SqlSession session = sqlSessionFactory.openSession()){
-        PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
-        List<PlayerScore> playerScoreList = mapper.selectList();
-
-        for (PlayerScore playerScore : playerScoreList) {
-          if (playerScore.getRegisteredAt() != null) {
-            // 正常に日時が取得できた場合
-            player.sendMessage(playerScore.getId() + " | "
-                + playerScore.getPlayerName() + " | "
-                + playerScore.getScore() + " | "
-                + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-          } else {
-            // null だった場合のデバッグメッセージ
-            player.sendMessage("Error: 登録日時が取得できませんでした。");
-          }
-        }
-      }
+      sendPlayerScoreList(player);
       return false;
     }
 
       ExecutingPlayer nowExecutingPlayer = getPlayerScore(player);
-      //nowExecutingPlayer.setGameTime(GAME_TIME);
 
       initPlayerStatus(player);
 
@@ -86,6 +61,27 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
       gamePlay(player, nowExecutingPlayer);
 
       return true;
+  }
+
+
+  /**
+   * 現在登録されているスコアの一覧をメッセージに送る。
+   * @param player　プレイヤー
+   */
+  private void sendPlayerScoreList(Player player) {
+    List<PlayerScore> playerScoreList = playerScoreDataAccess.selectList();
+    for (PlayerScore playerScore : playerScoreList) {
+      if (playerScore.getRegisteredAt() != null) {
+        // 正常に日時が取得できた場合
+        player.sendMessage(playerScore.getId() + " | "
+            + playerScore.getPlayerName() + " | "
+            + playerScore.getScore() + " | "
+            + playerScore.getRegisteredAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+      } else {
+        // null だった場合のデバッグメッセージ
+        player.sendMessage("Error: 登録日時が取得できませんでした。");
+      }
+    }
   }
 
 
@@ -122,21 +118,18 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
         player.sendTitle("ゲームが終了しました","スコア：" + nowExecutingPlayer.getScore()+ "点",
             10, 70, 20);
 
-        //nowExecutingPlayer.setScore(0);
-
         executingPlayerList.clear();
 
         player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
         //スコア登録処理
-        try (SqlSession session = sqlSessionFactory.openSession(true)){
-          PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
-          mapper.insert(
-              new PlayerScore(nowExecutingPlayer.getPlayerName()
+        playerScoreDataAccess.insert(
+            new PlayerScore(nowExecutingPlayer.getPlayerName()
                   , nowExecutingPlayer.getScore()));
-        }
+
         return;
       }
+
       //// 1秒ごとに残り時間を減少させる
       nowExecutingPlayer.setGameTime(nowExecutingPlayer.getGameTime() - 1);
     }, 0, 20);
@@ -147,10 +140,6 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
   public void onBreakBlock(BlockBreakEvent e) {
     Block block = e.getBlock();
     Player player = e.getPlayer();
-
-    //if(player == null ) {
-      //return;
-    //}
 
     executingPlayerList.stream()
           .filter(p -> p.getPlayerName().equals(player.getName()))
@@ -163,18 +152,33 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
             Material randomOre = getRandomOre();
             block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(randomOre, 1));
 
-            // 発掘した鉱石の種類に応じてポイントを加算
-            //★ここのdefaultしか機能していないかも？
-            //getRandamOre()は機能していてMaterial名は出るのかも
-            //リファクタリング前から作成してみる
-            int point = switch (randomOre) {
+
+            int basePoint = switch (randomOre) {
               case LAPIS_LAZULI -> 20;
               case DIAMOND -> 30;
               case EMERALD -> 60;
               default -> 0;
             };
 
+            int point = basePoint;
+
+            //randomOreとlastDroppedOreが一致した場合、consecutiveDrops+1回となり、
+            //(basePointが代入された)pointにbasePointが加算される。
+            if (randomOre == p.getLastDroppedOre()) {
+              p.setConsecutiveDrops(p.getConsecutiveDrops() + 1);
+              point += basePoint;
+
+              System.out.println("連続して" + p.getLastDroppedOre() + "を発掘！ボーナスポイント" + point + "点を獲得！");
+              player.sendMessage("連続して" + p.getLastDroppedOre() + "を発掘！ボーナスポイント" + point + "点を獲得！");
+
+            } else {
+              p.setConsecutiveDrops(1);
+            }
+
             p.setScore(p.getScore() + point);
+
+            //lastDroppedOreを更新
+            p.setLastDroppedOre(randomOre);
 
             // 新しいスコアを確認
             System.out.println(randomOre + "を発掘！新しいスコア（加算後）: " + p.getScore());

@@ -1,5 +1,6 @@
 package plugin.treasuremining.data;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
@@ -13,6 +14,10 @@ public class ExecutingPlayer {
   private int gameTime;
   private String playerName;
   private int score;
+
+  private Material lastDroppedOre; // 最後にドロップした鉱石
+  private int consecutiveDrops;     // 連続ドロップ数
+
 
   public ExecutingPlayer(String playerName) {
     this.playerName = playerName;
@@ -43,6 +48,20 @@ public class ExecutingPlayer {
     this.score = score;
   }
 
- 
 
+  public Material getLastDroppedOre() {
+    return lastDroppedOre;
+  }
+
+  public void setLastDroppedOre(Material lastDroppedOre) {
+    this.lastDroppedOre = lastDroppedOre;
+  }
+
+  public int getConsecutiveDrops() {
+    return consecutiveDrops;
+  }
+
+  public void setConsecutiveDrops(int consecutiveDrops) {
+    this.consecutiveDrops = consecutiveDrops;
+  }
 }
