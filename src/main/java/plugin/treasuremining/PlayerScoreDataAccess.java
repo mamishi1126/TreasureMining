@@ -10,7 +10,7 @@ import plugin.treasuremining.mapper.PlayerScoreMapper;
 import plugin.treasuremining.mapper.data.PlayerScore;
 
 /**
- * DB接続やそれに付随する登録や更新処理を行うクラスです。
+ * DB接続やそれに付随する登録や更新処理を行うクラス。
  *
  */
 public class PlayerScoreDataAccess {
@@ -30,7 +30,7 @@ public class PlayerScoreDataAccess {
 
 
   /**
-   * player_scoreテーブルから一覧でスコア情報を取得する。
+   * player_scoreテーブルから一覧でスコア情報を取得。
    *
    * @return　スコア情報の一覧
    */

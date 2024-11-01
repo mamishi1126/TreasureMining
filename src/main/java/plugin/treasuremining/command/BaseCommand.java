@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- * コマンドを実行して動かすプラグイン処理の基底クラスです。
+ * コマンドを実行して動かすプラグイン処理の基底クラス。
  */
 public abstract class BaseCommand implements CommandExecutor {
 
@@ -21,7 +21,7 @@ public abstract class BaseCommand implements CommandExecutor {
   }
 
   /**
-   * コマンド実行者がプレイヤーだった場合に実行します。
+   * コマンド実行者がプレイヤーだった場合に実行。
    * @param player コマンドを実行したプレイヤー
    * @return　処理の実行有無
    */
@@ -30,7 +30,7 @@ public abstract class BaseCommand implements CommandExecutor {
 
 
   /**
-   * コマンド実行者がプレイヤー以外だった場合に実行します。
+   * コマンド実行者がプレイヤー以外だった場合に実行。
    * @param sender コマンド実行者
    * @return　処理の実行有無
    */

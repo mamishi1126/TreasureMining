@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
- * TreasureMiningGameのゲームを実行する際のプレイヤー情報を持つオブジェクト
+ * TreasureMiningGameのゲームを実行する際のプレイヤー情報を持つオブジェクト。
  * ゲームをプレイした回数、合計点数を情報に持つ。
  */
 
@@ -15,8 +15,8 @@ public class ExecutingPlayer {
   private String playerName;
   private int score;
 
-  private Material lastDroppedOre; // 最後にドロップした鉱石
-  private int consecutiveDrops;     // 連続ドロップ数
+  private Material lastDroppedOre;
+  private int consecutiveDrops;
 
 
   public ExecutingPlayer(String playerName) {

@@ -92,7 +92,7 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
 
   /**
-   * ゲーム開始前にプレイヤーの初期設定を行う
+   * ゲーム開始前にプレイヤーの初期設定を行う。
    * @param player
    */
   private static void initPlayerStatus(Player player) {
@@ -106,7 +106,7 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
 
   /**
-   *　ゲームを実行します。
+   *　ゲームを実行。
    * @param player　コマンドを実行したプレイヤー
    * @param nowExecutingPlayer　プレイヤースコア情報
    */
@@ -190,7 +190,7 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
 
   /**
-   * ドロップする鉱石をランダムに抽出
+   * ドロップする鉱石をランダムに抽出。
    *
    * @return
    */
@@ -219,7 +219,7 @@ public class TreasureMiningCommand extends BaseCommand implements Listener {
 
 
   /**
-   * 新規のプレイヤー情報を追加
+   * 新規のプレイヤー情報を追加。
    * @param player
    * @return 新規プレイヤー
    */
