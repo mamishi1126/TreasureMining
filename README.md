@@ -1,38 +1,46 @@
 # TreasureMining 
 ## プロジェクト概要 
-TreasureMiningは、Minecraftのプレイヤーが鉱石を採掘して得点を競うミニゲームプラグインです。  
-本プロジェクトは私がJava学習を通じて得た知識を活用し、ゲーム開発に挑戦する目的で制作しました。  
+TreasureMiningは、Javaによるオブジェクト指向設計、条件分岐、データベース連携等を学ぶために実装したミニゲームです。
+このプロジェクト制作を通じて、バックエンドエンジニアとして必要な基礎スキルを習得することを目的としました。
+また、ゲームロジックの設計や拡張性を意識したアプローチを取り入れることで、より実践的な成果物を目指しました。  
+主な機能として、プレイヤーがランダムに生成される鉱石を採掘し合計スコアを競う仕組みを実装しました。
+鉱石の種類ごとに設定されたスコア計算ロジックを条件分岐やループ処理を活用して構築し、リアルタイムでスコアを更新する仕組みを実現しています。
+また、スコアやプレイヤーデータは MyBatisを利用してMySQLデータベースに保存し、データが永続的に保持されるようにしています。
+ 
 
-## 機能要件
-### １．ゲームの進行
-**・ゲーム開始**：`/treasuremining`コマンドで開始。画面上に「Let's mine the treasure! 制限時間1分」と表示。  
-**・初期設定**：体力とフードレベルが最大になり、インベントリは空になります。メインハンドにダイアモンドのツルハシをセットします。  
-**・ゲーム終了**：1分経過でゲームが終了し、画面上に獲得スコアが表示されます。インベントリが空になります。  
+## 主な実装ポイント
+### 条件分岐とループ処理
+**・ループ処理と条件分岐**：鉱石をランダムに出現させるループ処理や、鉱石の種類ごとに異なるポイント設定、連続採掘時のボーナスポイント加算を実現する条件分岐を活用。  
+**・オブジェクト指向設計**：プレイヤー名やスコアを管理するクラスを設計し、可読性やメンテナンス性の高いコードを実現。  
+**・データベース連携と管理**：MyBatisを使用してMySQLデータベースと連携し、ゲーム終了後のスコアデータの永続化を実現。  
 
-### ２．プレイヤーの鉱石採掘
-**・鉱石の種類による得点**：各鉱石ごとに獲得ポイントが異なり、連続採掘でボーナスポイントが加算されます。  
-&emsp;- 石炭：0点、ラピスラズリ：20点、ダイヤモンド：30点、エメラルド：60点  
-**・連続発掘ボーナス**：同じ鉱石を連続で発掘すると、1回ごとに+10点のボーナス。  
-**・ポイント制限**：ゲーム終了後はブロックを破壊してもポイントが追加されません。  
+# デモ動画
+https://github.com/user-attachments/assets/65253c7c-d547-44dc-98e5-64f6a5620b7c
 
-### ３．インベントリの管理 
-**・ゲーム開始時**：インベントリは空になります。  
-**・ゲーム中**：採掘した鉱石はインベントリに追加されます。  
-**・ゲーム終了時**：インベントリは空になり、取得した鉱石は削除されます。  
+# ディレクトリ構成
+* java/plugin/treasuremining  
+  * Main.java：プラグインのエントリーポイント  
+  * command/
+    * BaseCommand.java：コマンドの基底クラス  
+    * TreasureMining.java：ゲームのロジックやコマンド処理を実装したクラス
+  * data/  
+    * ExecutingPlayer.java：プレイヤーのデータオブジェクト
+  * mapper/
+    * PlayerScoreMapper.java：Mybatisのマッパーインターフェース
+  * PlayerScore.java：データベース接続およびスコア管理
+  * resources/
+    * mybatis-config.xml：Mybatisの設定ファイル
 
-### ４．データベース管理
-**・ゲーム終了時の保存**：プレイヤー名、獲得ポイント、登録日時をデータベースに保存し記録として管理します。  
-**・データの呼び出し**：`/treasuremining playerlist` と入力することで、保存されたデータ一覧を確認できます。  
 
-## 工夫したポイント
-**・オブジェクト指向設計**：`ExecutingPlayer`クラスを使用し、プレイヤーごとのスコアや連続採掘ボーナス情報を管理。多機能との連携や保守性を考慮しました。  
-**・イベント駆動型の設計**：`BlockBreakEvent`を活用し、プレイヤーの鉱石採掘アクションに応じてリアルタイムでスコアを加算。イベントリスナによる柔軟なデータ処理を実現しました。  
-**・効率的なスコアリングロジック**：鉱石ごとに異なる得点と連続採掘ボーナスを加算するスコアリングロジックを実装。条件分岐をシンプルに保ちながら柔軟なスコア管理を実現しました。  
-**・ゲーム終了時のデータリセット**：終了時にプレイヤーのインベントリやスコアをリセットし、リソース消費を最適化。バックエンドにおける効率的なデータ処理とクリーンアップを行っています。  
-**・データベース設計と管理**：プレイヤー情報やスコアをMyBatisでデータベースに記録。ゲーム終了時も記録が保持されるよう、スコア保存とデータ取得のパフォーマンスに配慮した実装を行いました。
+## 機能概要
+### ゲームコマンドの実行
+* コマンド実行の基底クラス (BaseCommand) にコマンド実行者がプレイヤーかNPCかで処理を分ける抽象クラスを導入。  
+&thinsp;これにより、コマンド処理の拡張性を高め、将来的な機能追加を容易にしています。 
+* `/trasuremining`コマンドでゲームを開始し、鉱石採掘、スコア管理を行います。
 
-## データベース設計
-本プロジェクトではプレイヤーのスコアを管理するために、`player_score`テーブルを使用。
+## データベース接続とスコア管理
+* MyBatisを用いたデータアクセス: PlayerScoreDataクラスを使用して、MySQLデータベースと接続し、プレイヤーのスコアデータを永続化しています。
+* 本プロジェクトではプレイヤーのスコアを管理するために、`player_score`テーブルを使用。
 
 ### テーブル: player_score
 | カラム名         | データ型         | 説明                   |
@@ -47,9 +55,93 @@ TreasureMiningは、Minecraftのプレイヤーが鉱石を採掘して得点を
 |-----|-------------|-------|---------------------|
 | 1   | playerA     | 120   | 2023-10-25 12:34:56|
 
+### Mybatis設定ファイル
+* MyBatisの設定ファイルは以下の通りです。
+```java
+<configuration>
+  <settings>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>
+  </settings>
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/treasure_mining"/>
+        <property name="username" value="root"/>
+        <property name="password" value="mryomend1126t03"/>
+      </dataSource>
+    </environment>
+  </environments>
+  <mappers>
+    <mapper class="plugin.treasuremining.mapper.PlayerScoreMapper"/>
+  </mappers>
+</configuration>
+```
+# コア機能と技術的工夫
+## 鉱石のランダム抽出とスコアリング
+* 機能概要：プレイヤーがブロック破壊時に、石炭、ラピスラズリ、ダイアモンド、エメラルドの中から1種をランダム抽出し、鉱石の種類によって異なるスコアリングを行います。
+* コード例：
+```java
+ @EventHandler
+  public void onBreakBlock(BlockBreakEvent e) {
+    Block block = e.getBlock();
+    Player player = e.getPlayer();
+
+    executingPlayerList.stream()
+          .filter(p -> p.getPlayerName().equals(player.getName()))
+          .findFirst()
+          .ifPresent(p -> {
+
+            e.setDropItems(false);
+
+            // ランダムに選ばれた鉱石をドロップさせる
+            Material randomOre = getRandomOre();
+            block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(randomOre, 1));
+
+
+            int basePoint = switch (randomOre) {
+              case LAPIS_LAZULI -> 20;
+              case DIAMOND -> 30;
+              case EMERALD -> 60;
+              default -> 0;
+            };
+```            
+## 連続採掘によるボーナスポイント加算
+* 機能概要：同じ鉱石を連続採掘するごとに、[鉱石ごとの獲得ポイント×連続採掘回数]点を加算します。
+* コード例：
+```java
+int point = basePoint;
+
+            //randomOreとlastDroppedOreが一致した場合、consecutiveDrops+1回となり、
+            //(basePointが代入された)pointにbasePointが加算される。
+            if (randomOre == p.getLastDroppedOre()) {
+              p.setConsecutiveDrops(p.getConsecutiveDrops() + 1);
+              point += basePoint;
+
+              System.out.println("連続して" + p.getLastDroppedOre() + "を発掘！ボーナスポイント" + point + "点を獲得！");
+              player.sendMessage("連続して" + p.getLastDroppedOre() + "を発掘！ボーナスポイント" + point + "点を獲得！");
+
+            } else {
+              p.setConsecutiveDrops(1);
+            }
+
+            p.setScore(p.getScore() + point);
+
+            //lastDroppedOreを更新
+            p.setLastDroppedOre(randomOre);
+
+            // 新しいスコアを確認
+            System.out.println(randomOre + "を発掘！新しいスコア（加算後）: " + p.getScore());
+
+            player.sendMessage(randomOre + "を発掘！現在のポイントは" + p.getScore() + "点！");
+
+          });
+```          
+# まとめ
+今回TreasureMiningの制作を通じて、ロジック設計の基礎を身に着けることができ、可読性や保守性の高いコードを書くことの大切さを実感しました。
+また、データ永続化や拡張性のある設計を実現することで、バックエンドエンジニアとしての基本的なスキルを習得しました。
+
 ### 対応バージョン
 ・Minecraft：1.20.4  
 ・Spigot:1.20.4  
-
-### デモ  
-https://github.com/user-attachments/assets/65253c7c-d547-44dc-98e5-64f6a5620b7c
